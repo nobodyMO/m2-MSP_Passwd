@@ -161,17 +161,20 @@ class Auth implements AuthInterface
         ];
         $data = [];
         $keys = implode('|', array_keys($neededParts));
+		if ($authDigest){
+			preg_match_all('@(' . $keys . ')=(?:([\'"])([^\2]+?)\2|([^\s,]+))@', $authDigest, $matches, PREG_SET_ORDER);
 
-        preg_match_all('@(' . $keys . ')=(?:([\'"])([^\2]+?)\2|([^\s,]+))@', $authDigest, $matches, PREG_SET_ORDER);
+			foreach ($matches as $m) {
+				$data[$m[1]] = $m[3] ? $m[3] : $m[4];
+				unset($neededParts[$m[1]]);
+			}
 
-        foreach ($matches as $m) {
-            $data[$m[1]] = $m[3] ? $m[3] : $m[4];
-            unset($neededParts[$m[1]]);
-        }
-
-        return $neededParts ? false : $data;
+			return $neededParts ? false : $data;
+		} else {
+			return false;
+		}
     }
-
+    
     /**
      * Return true if access is authorized
      * @param Http $request
